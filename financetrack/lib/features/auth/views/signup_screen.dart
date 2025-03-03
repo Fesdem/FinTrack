@@ -1,32 +1,77 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:financetrack/common/constants/colors.dart';
 import 'package:financetrack/common/constants/text_styles.dart';
+import 'package:financetrack/features/auth/controller/auth_controller.dart';
 import 'package:financetrack/features/auth/views/form_screen.dart';
 import 'package:financetrack/features/auth/views/login_screen.dart';
+import 'package:financetrack/utils/show_snack_bar.dart';
 import 'package:financetrack/utils/widgets/header.dart';
+import 'package:financetrack/utils/widgets/loading_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class SignupScreen extends StatefulWidget {
+class SignupScreen extends ConsumerStatefulWidget {
   static const routeName = '/signup-screen';
 
   const SignupScreen({super.key});
 
   @override
-  State<SignupScreen> createState() => _SignupScreenState();
+  ConsumerState<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _SignupScreenState extends State<SignupScreen> {
+class _SignupScreenState extends ConsumerState<SignupScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
 
-  void _navigateToSigninScreen() {
-    Navigator.pushReplacementNamed(context, LoginScreen.routeName);
+  void _signup() async {
+    try {
+      if (_passwordController.text.isNotEmpty &&
+          _confirmPasswordController.text.isNotEmpty &&
+          _emailController.text.isNotEmpty) {
+        if (_passwordController.text == _confirmPasswordController.text) {
+          showCircleLoader(message: 'Creating Account...');
+          String email = _emailController.text;
+          String password = _passwordController.text;
+
+          await ref
+              .read(authControllerProvider)
+              .createAccountWithEmail(
+                context: context,
+                email: email,
+                password: password,
+                destination: FormScreen(email: email),
+              );
+        } else {
+          showSnackBar(
+            context: context,
+            status: Status.error,
+            message: 'Paswords must match',
+          );
+        }
+      } else {
+        showSnackBar(
+          context: context,
+          status: Status.error,
+          message: 'Email and Password fields must be filled!',
+        );
+      }
+    } catch (e) {
+      showSnackBar(
+        context: context,
+        status: Status.error,
+        message: 'An error occured. Try again later!',
+      );
+    } finally {
+      // hideLoader();
+    }
   }
 
-  void _navigateToFormScreen() {
-    Navigator.pushReplacementNamed(context, FormScreen.routeName);
+  void _navigateToSigninScreen() {
+    Navigator.pushReplacementNamed(context, LoginScreen.routeName);
   }
 
   @override
@@ -97,7 +142,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       borderRadius: BorderRadius.circular(12.r),
                     ),
                   ),
-                  onPressed: _navigateToFormScreen,
+                  onPressed: _signup,
                   child: Text('Sign Up', style: AppTextStyle.eigStyle),
                 ),
               ),

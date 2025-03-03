@@ -1,49 +1,57 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:financetrack/common/constants/colors.dart';
 import 'package:financetrack/common/constants/text_styles.dart';
-import 'package:financetrack/features/home/views/home_screen.dart';
+import 'package:financetrack/features/auth/controller/auth_controller.dart';
+import 'package:financetrack/features/views/main_page.dart';
+import 'package:financetrack/utils/show_snack_bar.dart';
 import 'package:financetrack/utils/widgets/header.dart';
+import 'package:financetrack/utils/widgets/loading_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class FormScreen extends StatefulWidget {
+class FormScreen extends ConsumerStatefulWidget {
   static const routeName = '/form-screen';
+  final String email;
 
-  const FormScreen({super.key});
+  const FormScreen({super.key, required this.email});
 
   @override
-  State<FormScreen> createState() => _FormScreenState();
+  ConsumerState<FormScreen> createState() => _FormScreenState();
 }
 
-class _FormScreenState extends State<FormScreen> {
+class _FormScreenState extends ConsumerState<FormScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _emailController = TextEditingController();
   String? _firName;
   String? _lasName;
   String? _userName;
 
   void _submit() async {
-    if (_formKey.currentState!.validate()) {
-      FocusScope.of(context).unfocus();
-      _formKey.currentState!.save();
-      // await ref.read(authControllerProvider).saveStaffFormToFirebase(
-      //       context: context,
-      //       userName: _userName!,
-      //       firName: _firName!,
-      //       lasName: _lasName!,
-      //       deviceToken: token!,
-      //       phoneNumber: int.parse(_phoneNo!),
-      //     );
+    try {
+      if (_formKey.currentState!.validate()) {
+        showCircleLoader(message: 'Saving Form...');
+        FocusScope.of(context).unfocus();
+        _formKey.currentState!.save();
+        await ref
+            .read(authControllerProvider)
+            .saveUserDataToFirebase(
+              context: context,
+              userName: _userName!,
+              firstName: _firName!,
+              lastName: _lasName!,
+              destination: const MainPage(),
+            );
+      }
+    } catch (e) {
+      showSnackBar(
+        context: context,
+        status: Status.error,
+        message: 'An error occured. Try again later!',
+      );
+    } finally {
+      // hideLoader();
     }
-  }
-
-  void _navigateToHomeScreen() {
-    Navigator.pushReplacementNamed(context, HomeScreen.routeName);
-  }
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    super.dispose();
   }
 
   @override
@@ -100,7 +108,7 @@ class _FormScreenState extends State<FormScreen> {
                         return null;
                       },
                       onSaved: (value) {
-                        _firName = value!;
+                        _lasName = value!;
                       },
                     ),
                     SizedBox(height: 8.h),
@@ -119,14 +127,14 @@ class _FormScreenState extends State<FormScreen> {
                         return null;
                       },
                       onSaved: (value) {
-                        _firName = value!;
+                        _userName = value!;
                       },
                     ),
                     SizedBox(height: 8.h),
                     Text('Email', style: AppTextStyle.twelStyle),
                     TextField(
                       readOnly: true,
-                      controller: _emailController,
+                      controller: TextEditingController(text: widget.email),
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12.r),
@@ -148,7 +156,7 @@ class _FormScreenState extends State<FormScreen> {
                       borderRadius: BorderRadius.circular(12.r),
                     ),
                   ),
-                  onPressed: _navigateToHomeScreen,
+                  onPressed: _submit,
                   child: Text('Submit Form', style: AppTextStyle.eigStyle),
                 ),
               ),

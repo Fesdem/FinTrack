@@ -78,9 +78,20 @@ class AppTextStyle {
     color: redColor,
     fontWeight: FontWeight.w400,
   );
-   static TextStyle sixtStyle = TextStyle(
+  static TextStyle sixtStyle = TextStyle(
     fontSize: 36.sp,
     color: primaryColor,
     fontWeight: FontWeight.w700,
+  );
+  static TextStyle sevtStyle = TextStyle(
+    fontSize: 30.sp,
+    color: hintColor,
+    fontWeight: FontWeight.w700,
+  );
+
+  static TextStyle eightStyle = TextStyle(
+    fontSize: 12.sp,
+    color: feintBlueColor,
+    fontWeight: FontWeight.w400,
   );
 }

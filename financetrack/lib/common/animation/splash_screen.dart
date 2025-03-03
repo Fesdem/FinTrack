@@ -1,9 +1,11 @@
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:financetrack/common/constants/colors.dart';
 import 'package:financetrack/common/constants/text_styles.dart';
+import 'package:financetrack/features/auth/repository/user_repository.dart';
+import 'package:financetrack/features/auth/views/form_screen.dart';
 import 'package:financetrack/features/auth/views/login_screen.dart';
-import 'package:financetrack/features/home/views/home_screen.dart';
 import 'package:financetrack/features/views/main_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -14,9 +16,15 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  final bool _isAuthenticated = false;
-  final bool _isUserCleared = false;
-  final bool _isAuthorized = false;
+  bool _isAuthenticated = false;
+  bool _isAuthorized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _isAuthenticated = UserRepository.getBool('isLoggedIn') ?? false;
+    _isAuthorized = UserRepository.getBool('IsAuthorized') ?? false;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,9 +47,11 @@ class _SplashScreenState extends State<SplashScreen> {
       ),
       nextScreen:
           _isAuthenticated
-              ? (_isUserCleared
-                  ? (_isAuthorized ? MainPage() : LoginScreen())
-                  : HomeScreen())
+              ? (_isAuthorized
+                  ? MainPage()
+                  : FormScreen(
+                    email: FirebaseAuth.instance.currentUser!.email!,
+                  ))
               : LoginScreen(),
       backgroundColor: whiteColor,
       splashTransition: SplashTransition.fadeTransition,

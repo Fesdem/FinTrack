@@ -1,31 +1,67 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:financetrack/common/constants/colors.dart';
 import 'package:financetrack/common/constants/text_styles.dart';
+import 'package:financetrack/features/auth/controller/auth_controller.dart';
 import 'package:financetrack/features/auth/views/signup_screen.dart';
-import 'package:financetrack/features/home/views/home_screen.dart';
+import 'package:financetrack/features/views/main_page.dart';
+import 'package:financetrack/utils/show_snack_bar.dart';
 import 'package:financetrack/utils/widgets/header.dart';
+import 'package:financetrack/utils/widgets/loading_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   static const routeName = '/login-screen';
 
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isSeen = false;
 
-  void _navigateToSignupScreen() {
-    Navigator.pushReplacementNamed(context, SignupScreen.routeName);
+  void _login() async {
+    try {
+      if (_passwordController.text.isNotEmpty &&
+          _emailController.text.isNotEmpty) {
+        showCircleLoader(message: 'Logging In...');
+        String email = _emailController.text.trim();
+        String password = _passwordController.text;
+
+        await ref
+            .read(authControllerProvider)
+            .logInWithEmail(
+              context: context,
+              email: email,
+              password: password,
+              destination: const MainPage(),
+            );
+      } else {
+        showSnackBar(
+          context: context,
+          status: Status.error,
+          message: 'Email and Password fields must be filled!',
+        );
+      }
+    } catch (e) {
+      showSnackBar(
+        context: context,
+        status: Status.error,
+        message: 'An error occured. Try again later!',
+      );
+    } finally {
+      // hideLoader();
+    }
   }
 
-  void _navigateToHomeScreen() {
-    Navigator.pushReplacementNamed(context, HomeScreen.routeName);
+  void _navigateToSignupScreen() {
+    Navigator.pushReplacementNamed(context, SignupScreen.routeName);
   }
 
   void _toogle() {
@@ -109,7 +145,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(12.r),
                     ),
                   ),
-                  onPressed: _navigateToHomeScreen,
+                  onPressed: _login,
                   child: Text('Sign In', style: AppTextStyle.eigStyle),
                 ),
               ),

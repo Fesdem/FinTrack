@@ -1,5 +1,6 @@
 import 'package:financetrack/common/constants/colors.dart';
 import 'package:financetrack/common/constants/text_styles.dart';
+import 'package:financetrack/features/transaction/views/add_trans_screen.dart';
 import 'package:financetrack/utils/month_list.dart';
 import 'package:financetrack/utils/widgets/recent_trans_card.dart';
 import 'package:financetrack/utils/widgets/summary_budget_card.dart';
@@ -20,9 +21,13 @@ class _HomeScreenState extends State<HomeScreen> {
   DateTime _selectedDate = DateTime.now();
   bool _isOpenCalendar = false;
 
+  void _navigateToTransScreen() {
+    Navigator.pushNamed(context, AddTransScreen.routeName);
+  }
+
   @override
   Widget build(BuildContext context) {
-    String monthName = monthNames[_selectedDate.month - 2];
+    String monthName = monthNames[_selectedDate.month - 1];
     return Scaffold(
       appBar: AppBar(
         title: Column(
@@ -115,7 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     width: 238.w,
                     height: 48.h,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: _navigateToTransScreen,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: primaryColor,
                         shape: RoundedRectangleBorder(
